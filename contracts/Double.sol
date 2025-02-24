@@ -2,12 +2,15 @@
 
 import "fhevm/lib/TFHE.sol";
 import "fhevm/config/ZamaFHEVMConfig.sol";
+import { GatewayCaller, Gateway } from "fhevm/gateway/GatewayCaller.sol";
+import { SepoliaZamaGatewayConfig } from "fhevm/config/ZamaGatewayConfig.sol";
 
 pragma solidity ^0.8.24;
 
-contract Double is SepoliaZamaFHEVMConfig {
+contract Double is SepoliaZamaFHEVMConfig, SepoliaZamaGatewayConfig, GatewayCaller {
     euint256 private _number;
     euint256 private _double;
+    uint256 public _numberDecrypted;
 
     function setNumber(uint256 number_) public {
         _number = TFHE.asEuint256(number_);
@@ -25,5 +28,22 @@ contract Double is SepoliaZamaFHEVMConfig {
     function doubleNumber() public {
         _double = TFHE.mul(_number, 2);
         TFHE.allowThis(_double);
+    }
+
+    function requestDecryptNumber() public {
+        uint256[] memory cts = new uint256[](1);
+        cts[0] = Gateway.toUint256(_double);
+        uint256 requestID = Gateway.requestDecryption( // não estamos usando o requestID por enquanto
+                cts,
+                this.callbackUint256.selector,
+                0,
+                block.timestamp + 100,
+                false
+            );
+    }
+
+    function callbackUint256(uint256 /*requestID*/, uint256 decryptedInput) public onlyGateway returns (uint256) {
+        _numberDecrypted = decryptedInput;
+        return _numberDecrypted;
     }
 }
