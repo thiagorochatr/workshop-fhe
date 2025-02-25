@@ -6,15 +6,16 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { deployer } = await hre.getNamedAccounts();
   const { deploy } = hre.deployments;
 
-  const args: string[] = [];
+  /// wallets that will be allowed to vote
+  const args = [[deployer, process.env.WALLET_TEST_1!, process.env.WALLET_TEST_2!]];
 
-  const deployed = await deploy("Double", {
+  const deployed = await deploy("VotingSystem", {
     from: deployer,
     args: args,
     log: true,
   });
 
-  console.log(`Double contract: `, deployed.address);
+  console.log(`VotingSystem CONTRACT DEPLOYED: `, deployed.address);
 
   console.log("Waiting 30 seconds before verification...");
   await new Promise((resolve) => setTimeout(resolve, 30000));
@@ -25,8 +26,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     constructorArguments: args,
   });
 
-  console.log(`Double CONTRACT VERIFIED`);
+  console.log(`VotingSystem CONTRACT VERIFIED`);
 };
 export default func;
-func.id = "deploy_double"; // id required to prevent reexecution
-func.tags = ["Double"];
+func.id = "deploy_voting_system"; // id required to prevent reexecution
+func.tags = ["VotingSystem"];

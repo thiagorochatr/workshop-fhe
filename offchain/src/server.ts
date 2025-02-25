@@ -1,16 +1,17 @@
 import dotenv from "dotenv";
 import { ethers } from "ethers";
 import { createInstance } from "fhevmjs";
-import DoubleABI from "../abi/Double.json" assert { type: "json" };
+import VotingSystemABI from "../abi/VotingSystem.json" assert { type: "json" };
 
 dotenv.config();
 
 const SEPOLIA_RPC_URL = process.env.SEPOLIA_RPC_URL as string;
-const CONTRACT_ADDRESS = "0xDf40ba5C2f3541dB15b9ea0B78BE00e22B13e3cE";
+const CONTRACT_ADDRESS = "0x04b34272d7bF8E805b0F0aFa4763173614238351";
 
-// ========== DOUBLE ==========
-const PRIVATE_KEY = process.env.PRIVATE_KEY_0 as string; // PRIVATE_KEY_0, PRIVATE_KEY_1, PRIVATE_KEY_2
-const NUMBER: number = 9; // NUMBER TO DOUBLE
+// ========== VOTING ==========
+const PRIVATE_KEY = process.env.PRIVATE_KEY_2 as string; // PRIVATE_KEY_0, PRIVATE_KEY_1, PRIVATE_KEY_2
+const VOTE_CHOICE: number = 0;
+const VOTE_ID: number = 0;
 
 if (!SEPOLIA_RPC_URL || !PRIVATE_KEY || !CONTRACT_ADDRESS) {
   throw new Error("Please set the environment variables correctly.");
@@ -29,14 +30,14 @@ async function main() {
   const wallet = new ethers.Wallet(PRIVATE_KEY, provider);
 
   // Connect to contract
-  const contractABI = DoubleABI.abi;
+  const contractABI = VotingSystemABI.abi;
   const contract = new ethers.Contract(CONTRACT_ADDRESS, contractABI, wallet);
 
-  console.log("🔐 Creating encrypted input for number...");
+  console.log("🔐 Creating encrypted input for vote...");
   const input = instance.createEncryptedInput(CONTRACT_ADDRESS, wallet.address);
 
-  // NUMBER
-  input.add256(NUMBER);
+  // VOTE CHOICE
+  input.add64(VOTE_CHOICE);
 
   const encryptedData = await input.encrypt();
 
@@ -46,7 +47,8 @@ async function main() {
   console.log("🔐 Proof:", encryptedData.inputProof);
 
   console.log("🔄 Sending transaction...");
-  const tx = await contract.setNumber(
+  const tx = await contract.castVote(
+    VOTE_ID,
     encryptedData.handles[0],
     encryptedData.inputProof,
   );
