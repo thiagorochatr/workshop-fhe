@@ -12,8 +12,9 @@ contract Double is SepoliaZamaFHEVMConfig, SepoliaZamaGatewayConfig, GatewayCall
     euint256 private _double;
     uint256 public _numberDecrypted;
 
-    function setNumber(uint256 number_) public {
-        _number = TFHE.asEuint256(number_);
+    function setNumber(einput encryptedSupport, bytes calldata supportProof) public {
+        euint256 encryptedNumber = TFHE.asEuint256(encryptedSupport, supportProof);
+        _number = encryptedNumber;
         TFHE.allowThis(_number);
     }
 
